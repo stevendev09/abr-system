@@ -1,5 +1,5 @@
 [build]
-  publish = "dist/abr-system"
+  publish = "dist/abr-system/browser"
   command = "npm run build"
 
 [[redirects]]
