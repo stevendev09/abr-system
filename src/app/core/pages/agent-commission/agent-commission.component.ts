@@ -68,10 +68,6 @@ export class AgentCommissionComponent {
         // Procesar los datos para una mejor estructura
         this.processExcelData(jsonData);
 
-        console.log('Datos procesados:', this.excelData);
-        console.log('Todos los headers:', this.allHeaders);
-        console.log('Headers a mostrar:', this.displayedHeaders);
-
       } catch (error) {
         console.error('Error al leer el archivo:', error);
         alert('Error al leer el archivo. Asegúrate de que es un Excel válido.');
