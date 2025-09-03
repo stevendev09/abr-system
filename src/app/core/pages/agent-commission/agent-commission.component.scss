@@ -1,0 +1,28 @@
+    .stat-item {
+        padding: 10px;
+    }
+
+    .stat-item h4 {
+        margin: 0;
+        font-weight: bold;
+    }
+
+    .table th {
+        position: sticky;
+        top: 0;
+        background-color: #212529 !important;
+    }
+
+    .table-responsive {
+        max-height: 600px;
+        overflow-y: auto;
+    }
+
+    .gap-2 {
+        gap: 0.5rem;
+    }
+
+    .number-cell {
+        text-align: right;
+        font-family: monospace;
+    }
