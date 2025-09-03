@@ -51,7 +51,6 @@
     </div>
 
     <!-- Statistics -->
-    <!-- Statistics -->
     <div *ngIf="excelData.length > 0" class="row mb-3">
         <div class="col-12">
             <div class="card">
@@ -89,7 +88,6 @@
     </div>
 
     <!-- Data Table -->
-    <!-- Data Table -->
     <div *ngIf="excelData.length > 0" class="row mb-4">
         <div class="col-12">
             <div class="card">
@@ -124,8 +122,8 @@
                                 </tr>
                                 <!-- Fila de totales -->
                                 <tr class="table-info fw-bold">
-                                    <td class="text-center">TOTAL</td>
-                                    <td *ngFor="let header of displayedHeaders"
+                                    <td class="text-center" style="color: black;">TOTAL</td>
+                                    <td style="color: black;" *ngFor="let header of displayedHeaders"
                                         [class.text-end]="header === 'MONTO GANADO' || header === 'COLUMNA 3'">
                                         <ng-container *ngIf="header === 'MONTO GANADO'">
                                             {{ getTotalMontoGanadoSum() | currency }}
@@ -137,7 +135,7 @@
                                             -
                                         </ng-container>
                                     </td>
-                                    <td class="text-center">-</td>
+                                    <td class="text-center" style="color: black;">-</td>
                                 </tr>
                             </tbody>
                         </table>

@@ -213,24 +213,6 @@ export class AgentCommissionComponent {
     }
   }
 
-  downloadJSON(): void {
-    // Crear un objeto limpio sin rowNumber para la exportación
-    const exportData = this.excelData.map(({ rowNumber, ...rest }) => rest);
-    const jsonData = JSON.stringify(exportData, null, 2);
-
-    const blob = new Blob([jsonData], { type: 'application/json' });
-    const url = window.URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'datos-excel-con-calculos.json';
-    document.body.appendChild(a);
-    a.click();
-
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
-  }
-
   private isExcelFile(file: File): boolean {
     return file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
   }
@@ -243,205 +225,116 @@ export class AgentCommissionComponent {
     return this.excelData.reduce((total, row) => total + (row['COLUMNA 3'] || 0), 0);
   }
 
+  exportToExcelWithAdvancedFormatting(): void {
+    const agent = this.getAgentName();
+    const month = this.getMonth();
+    const year = new Date().getFullYear();
+    const fileName = `${agent} - ${month} ${year}`;
 
 
-  exportToExcel(): void {
-    // Preparar los datos con solo las columnas visibles
-    const dataToExport = this.excelData.map(row => {
-      const exportedRow: any = {};
+    // Usar array de arrays para mejor control
+    const data: any[][] = [];
 
+    // 1. Encabezados
+    data.push(this.displayedHeaders);
+
+    // 2. Datos
+    this.excelData.forEach(row => {
+      const rowData: any[] = [];
       this.displayedHeaders.forEach(header => {
-        // Incluir las columnas calculadas también
-        if (header === '% UTIL GANADA' || header === 'MONTO GANADO' || header === 'COLUMNA TRES') {
-          exportedRow[header] = row[header];
-        } else {
-          exportedRow[header] = row[header];
-        }
+        rowData.push(row[header]);
       });
-
-      return exportedRow;
+      data.push(rowData);
     });
 
-    // Crear una hoja de trabajo
-    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(dataToExport);
-
-    // Ajustar el ancho de las columnas automáticamente
-    const columnWidths = this.displayedHeaders.map(header => {
-      return { wch: Math.max(header.length, 15) }; // Mínimo 15 caracteres de ancho
+    // 3. Fila de totales
+    const totalRow: any[] = [];
+    this.displayedHeaders.forEach(header => {
+      if (header === 'MONTO GANADO') {
+        totalRow.push(this.getTotalMontoGanado());
+      } else if (header === 'COLUMNA TRES') {
+        totalRow.push(this.getTotalColumnaTresSum());
+      } else if (header === 'CodArt') {
+        totalRow.push('TOTAL');
+      } else {
+        totalRow.push('');
+      }
     });
-    ws['!cols'] = columnWidths;
+    data.push(totalRow);
 
-    // Crear un libro de trabajo
+    // Crear hoja
+    const ws: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet(data);
+
+    // Aplicar formatos
+    this.applyAdvancedExcelFormatting(ws, data.length);
+
+    // Exportar con nombre personalizado 🔥
     const wb: XLSX.WorkBook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Datos Exportados');
-
-    // Generar el archivo Excel
-    const excelBuffer: any = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-
-    // Guardar el archivo
-    this.saveAsExcelFile(excelBuffer, 'datos_exportados');
+    XLSX.utils.book_append_sheet(wb, ws, 'Reporte');
+    XLSX.writeFile(wb, `${fileName}.xlsx`);
   }
 
-  private saveAsExcelFile(buffer: any, fileName: string): void {
-    const data: Blob = new Blob([buffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  private getAgentName(): string {
+    if (this.excelData.length === 0) return 'SinVendedor';
+
+    const firstAgent = this.excelData[0]['Vendedor'];
+
+    return firstAgent ? firstAgent.toString().trim() : 'SinVendedor';
+  }
+
+  private getMonth(): string {
+    const months = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+
+    const nowDate = new Date();
+    return months[nowDate.getMonth()];
+  }
+
+
+  private applyAdvancedExcelFormatting(ws: XLSX.WorkSheet, totalRows: number): void {
+    const lastRow = totalRows - 1; // Índice base 0
+
+    // Formato para encabezados (fila 0)
+    this.displayedHeaders.forEach((_, colIndex) => {
+      const cellAddress = XLSX.utils.encode_cell({ r: 0, c: colIndex });
+      ws[cellAddress].s = {
+        font: { bold: true, color: { rgb: "FFFFFFFF" } },
+        fill: { fgColor: { rgb: "FF0070C0" } }, // Azul
+        alignment: { horizontal: 'center' }
+      };
     });
 
-    const url = window.URL.createObjectURL(data);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${fileName}_${new Date().getTime()}.xlsx`;
-    link.click();
-
-    // Limpiar
-    setTimeout(() => {
-      window.URL.revokeObjectURL(url);
-      link.remove();
-    }, 100);
-  }
-
-
-  exportToExcelWithFormatting(): void {
-    // Preparar datos
-    const dataToExport = this.excelData.map(row => {
-      const exportedRow: any = {};
-
-      this.displayedHeaders.forEach(header => {
-        exportedRow[header] = row[header];
-      });
-
-      return exportedRow;
-    });
-
-    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(dataToExport);
-
-    // Aplicar formatos a las celdas
-    this.applyExcelFormatting(ws, dataToExport.length);
-
-    const wb: XLSX.WorkBook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Datos Calculados');
-
-    // Exportar
-    XLSX.writeFile(wb, `reporte_${new Date().getTime()}.xlsx`);
-  }
-
-  private applyExcelFormatting(ws: XLSX.WorkSheet, rowCount: number): void {
-    // Definir estilos para diferentes tipos de datos
-    const moneyStyle = { numFmt: '"$"#,##0.00' };
-    const percentStyle = { numFmt: '0.00%"' };
-    const numberStyle = { numFmt: '#,##0.00' };
-
-    // Aplicar formatos según el tipo de columna
+    // Formato para totales (última fila)
     this.displayedHeaders.forEach((header, colIndex) => {
-      const colLetter = XLSX.utils.encode_col(colIndex);
+      const cellAddress = XLSX.utils.encode_cell({ r: lastRow, c: colIndex });
 
-      for (let row = 2; row <= rowCount + 1; row++) {
-        const cellAddress = `${colLetter}${row}`;
-
-        if (ws[cellAddress]) {
-          if (header.includes('MONTO') || header.includes('TOTAL') || header.includes('COLUMNA')) {
-            ws[cellAddress].s = moneyStyle;
-          } else if (header.includes('%') || header.includes('UTIL')) {
-            ws[cellAddress].s = percentStyle;
-          } else if (typeof ws[cellAddress].v === 'number') {
-            ws[cellAddress].s = numberStyle;
+      if (ws[cellAddress]) {
+        ws[cellAddress].s = {
+          font: { bold: true },
+          fill: { fgColor: { rgb: "FFF2F2F2" } },
+          border: {
+            top: { style: 'medium', color: { rgb: "FF000000" } }
           }
+        };
+
+        // Formatos numéricos
+        if (header === 'MONTO GANADO' || header === 'COLUMNA TRES') {
+          ws[cellAddress].s.numFmt = '"$"#,##0.00';
+        } else if (header.includes('%') || header === 'UTIL_porc') {
+          ws[cellAddress].s.numFmt = '0.00%';
         }
       }
     });
 
-    // Ajustar anchos de columna
+    // Ajustar anchos
     ws['!cols'] = this.displayedHeaders.map(header => ({
-      wch: Math.max(header.length + 5, 12) // Ancho dinámico
+      wch: Math.max(header.length + 4,
+        header === 'Articulo' ? 40 :
+          header === 'Vendedor' ? 30 : 15)
     }));
   }
-
-
-  exportToExcelWithAdvancedFormatting(): void {
-  // Usar array de arrays para mejor control
-  const data: any[][] = [];
-
-  // 1. Encabezados
-  data.push(this.displayedHeaders);
-
-  // 2. Datos
-  this.excelData.forEach(row => {
-    const rowData: any[] = [];
-    this.displayedHeaders.forEach(header => {
-      rowData.push(row[header]);
-    });
-    data.push(rowData);
-  });
-
-  // 3. Fila de totales
-  const totalRow: any[] = [];
-  this.displayedHeaders.forEach(header => {
-    if (header === 'MONTO GANADO') {
-      totalRow.push(this.getTotalMontoGanado());
-    } else if (header === 'COLUMNA TRES') {
-      totalRow.push(this.getTotalColumnaTresSum());
-    } else if (header === 'CodArt') {
-      totalRow.push('TOTAL');
-    } else {
-      totalRow.push('');
-    }
-  });
-  data.push(totalRow);
-
-  // Crear hoja
-  const ws: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet(data);
-
-  // Aplicar formatos
-  this.applyAdvancedExcelFormatting(ws, data.length);
-
-  // Exportar
-  const wb: XLSX.WorkBook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Reporte');
-  XLSX.writeFile(wb, 'reporte_completo.xlsx');
-}
-
-private applyAdvancedExcelFormatting(ws: XLSX.WorkSheet, totalRows: number): void {
-  const lastRow = totalRows - 1; // Índice base 0
-
-  // Formato para encabezados (fila 0)
-  this.displayedHeaders.forEach((_, colIndex) => {
-    const cellAddress = XLSX.utils.encode_cell({ r: 0, c: colIndex });
-    ws[cellAddress].s = {
-      font: { bold: true, color: { rgb: "FFFFFFFF" } },
-      fill: { fgColor: { rgb: "FF0070C0" } }, // Azul
-      alignment: { horizontal: 'center' }
-    };
-  });
-
-  // Formato para totales (última fila)
-  this.displayedHeaders.forEach((header, colIndex) => {
-    const cellAddress = XLSX.utils.encode_cell({ r: lastRow, c: colIndex });
-    
-    if (ws[cellAddress]) {
-      ws[cellAddress].s = {
-        font: { bold: true },
-        fill: { fgColor: { rgb: "FFF2F2F2" } },
-        border: {
-          top: { style: 'medium', color: { rgb: "FF000000" } }
-        }
-      };
-
-      // Formatos numéricos
-      if (header === 'MONTO GANADO' || header === 'COLUMNA TRES') {
-        ws[cellAddress].s.numFmt = '"$"#,##0.00';
-      } else if (header.includes('%') || header === 'UTIL_porc') {
-        ws[cellAddress].s.numFmt = '0.00%';
-      }
-    }
-  });
-
-  // Ajustar anchos
-  ws['!cols'] = this.displayedHeaders.map(header => ({
-    wch: Math.max(header.length + 4, 
-      header === 'Articulo' ? 40 : 
-      header === 'Vendedor' ? 30 : 15)
-  }));
-}
 
 
 }
