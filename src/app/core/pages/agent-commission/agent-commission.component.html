@@ -5,7 +5,7 @@
             <h1 class="text-primary">
                 <i class="bi bi-file-earmark-excel"></i> Lector de Archivos Excel
             </h1>
-            <p class="text-muted">Sube un archivo Excel para visualizar su contenido</p>
+            <p class="">Sube un archivo Excel para visualizar su contenido</p>
         </div>
     </div>
 
@@ -29,7 +29,7 @@
                                 <button class="btn btn-success" (click)="readExcel()" [disabled]="!selectedFile">
                                     <i class="bi bi-eye"></i> Ver Contenido
                                 </button>
-                                <button class="btn btn-outline-secondary" (click)="clearData()"
+                                <button class="btn btn-danger" (click)="clearData()"
                                     [disabled]="!excelData.length">
                                     <i class="bi bi-trash"></i> Limpiar
                                 </button>
@@ -60,24 +60,24 @@
                         <div class="col-md-2">
                             <div class="stat-item">
                                 <h4 class="text-primary">{{ excelData.length }}</h4>
-                                <small class="text-muted">Registros</small>
+                                <small class="">Registros</small>
                             </div>
                         </div>
                         <div class="col-md-2">
                             <div class="stat-item">
                                 <h4 class="text-warning">{{ getTotalMontoGanadoSum() | currency }}</h4>
-                                <small class="text-muted">Total Monto</small>
+                                <small class="">Total Monto</small>
                             </div>
                         </div>
                         <div class="col-md-2">
                             <div class="stat-item">
                                 <h4 class="text-info">{{ getTotalColumnaTresSum() | currency }}</h4>
-                                <small class="text-muted">Total Col3</small>
+                                <small class="">Total Col3</small>
                             </div>
                         </div>
                         <div class="col-md-2">
                             <div class="stat-item">
-                                <button class="btn btn-outline-primary btn-sm" (click)="exportToExcelWithAdvancedFormatting()">
+                                <button class="btn btn-primary btn-sm" (click)="exportToExcelWithAdvancedFormatting()">
                                     <i class="bi bi-download"></i> Exportar excel
                                 </button>
                             </div>
@@ -95,7 +95,7 @@
             <div class="card">
                 <div class="card-header bg-success text-white">
                     <h5 class="mb-0">
-                        <i class="bi bi-table"></i> Datos del Excel ({{ excelData.length }} registros)
+                        <i class="bi bi-table"></i> Datos del Excel
                     </h5>
                 </div>
                 <div class="card-body">
@@ -152,9 +152,9 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body text-center py-5">
-                    <i class="bi bi-file-earmark-excel text-muted" style="font-size: 3rem;"></i>
-                    <h4 class="text-muted mt-3">No hay datos para mostrar</h4>
-                    <p class="text-muted">Sube un archivo Excel para comenzar</p>
+                    <i class="bi bi-file-earmark-excel " style="font-size: 3rem;"></i>
+                    <h4 class=" mt-3">No hay datos para mostrar</h4>
+                    <p class="">Sube un archivo Excel para comenzar</p>
                 </div>
             </div>
         </div>

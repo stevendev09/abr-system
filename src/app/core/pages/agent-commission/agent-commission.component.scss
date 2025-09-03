@@ -13,6 +13,11 @@
         background-color: #212529 !important;
     }
 
+    .table td {
+        background-color: #3f3f3f !important;
+        color: white;
+    }
+
     .table-responsive {
         max-height: 600px;
         overflow-y: auto;
@@ -25,4 +30,9 @@
     .number-cell {
         text-align: right;
         font-family: monospace;
+    }
+
+    .card-body {
+        background-color: #3f3f3f;
+        color: white;
     }
